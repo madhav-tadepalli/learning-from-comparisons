@@ -1,0 +1,7 @@
+levelsum                                 logloss 0.6746 acc 0.5614 auc 0.5986
+trophies                                 logloss 0.6922 acc 0.5113 auc 0.5188
+levelsum+trophies                        logloss 0.6728 acc 0.5623 auc 0.6002
+levelsum+levelstats+trophies             logloss 0.6720 acc 0.5630 auc 0.6011
+cards                                    logloss 0.6752 acc 0.5706 auc 0.6018
+cards+levelsum+trophies                  logloss 0.6518 acc 0.6082 auc 0.6551
+cardlevels+levelsum+trophies             logloss 0.6529 acc 0.6066 auc 0.6537

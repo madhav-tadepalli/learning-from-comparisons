@@ -1,0 +1,32 @@
+{
+ "run": "constant",
+ "model": "constant",
+ "opts": {
+  "d": 64,
+  "k": 16,
+  "lr": 0.002,
+  "wd": 1e-05,
+  "bs": 8192,
+  "epochs": 40,
+  "patience": 3,
+  "levels": 1,
+  "trophies": 1,
+  "seed": 0,
+  "min_count": 20
+ },
+ "params": 0,
+ "train_sec": 0.0,
+ "history": [],
+ "val": {
+  "logloss": 0.6931471805599453,
+  "acc": 0.5008633222344911,
+  "auc": 0.5,
+  "brier": 0.25
+ },
+ "test": {
+  "logloss": 0.6931471805599453,
+  "acc": 0.5006799994884016,
+  "auc": 0.5,
+  "brier": 0.25
+ }
+}

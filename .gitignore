@@ -1,0 +1,12 @@
+# environments
+.venv/
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+
+# data: re-download with `python src/download_data.py` (raw ~1.4 GB, processed parquet ~100 MB)
+data/
+
+# course paper (not ours to redistribute)
+Paper.pdf

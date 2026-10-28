@@ -1,0 +1,92 @@
+# Clash Royale deck matchups
+
+Course project for DA5453 (IIT Madras). The goal: given two Clash Royale decks, their card levels and the players' trophies, predict who wins. Along the way, learn an embedding for each deck and model matchups that can be intransitive (rock-paper-scissors), for example with blade-chest.
+
+**Results and discussion: [REPORT.md](REPORT.md).** Deck similarity and counters: [results/deck_relations.md](results/deck_relations.md).
+
+Headline: on 235K held-out matches, a sum-of-card-embeddings encoder with an MLP matchup head gets **62.3%** accuracy (log-loss 0.641). A per-card strength model gets 57.8%. The gain comes from the matchup head, not from a fancier encoder.
+
+## Setup (Windows / Linux / macOS)
+
+```bash
+python -m venv .venv
+# Windows:      .venv\Scripts\activate
+# Linux/macOS:  source .venv/bin/activate
+pip install -r requirements.txt     # NVIDIA GPU: install torch from pytorch.org first
+```
+
+Run every command from the repo root, because the paths are relative. The code uses CUDA, then Apple MPS, then CPU, whichever is available (`train.device()`).
+
+## Data
+
+The data isn't in the repo (1.4 GB). Fetch the one S18 battle file we use, plus the card lists. This doesn't need a Kaggle login:
+
+```bash
+python src/download_data.py                  # → data/raw/s18/
+python src/prepare_s18.py data/raw/s18/BattlesStaging_12292020_WL_tagged.csv
+                                             # → data/processed/s18_ladder_12292020.parquet + cards.csv
+```
+
+The source is [Clash Royale S18 Ladder Datasets](https://www.kaggle.com/datasets/bwandowando/clash-royale-season-18-dec-0320-dataset). The full dataset is 22 GB across 10 battle files; we only use `BattlesStaging_12292020_WL_tagged.csv`.
+
+`prepare_s18.py` does the cleaning:
+- keeps normal ladder games only
+- drops rows with missing values and duplicate battles
+- requires valid decks: 8 distinct known cards, levels 1–13
+- sorts the cards in each deck
+- randomly assigns winner/loser to sides A/B, so column order doesn't leak the label
+- splits by time into 80/10/10 train/val/test
+
+Result: 2,345,592 matches.
+
+## Running things
+
+```bash
+python src/train.py <run_name> <model> [key=value ...]   # one model → results/runs/<run_name>.{json,pt} + test logits
+python src/train_gbdt.py gbdt                            # gradient-boosted trees baseline
+bash run_all.sh                                          # full experiment queue (skips runs that already exist)
+python src/analyze.py                                    # results table, figures → results/
+python src/deck_relations.py                             # deck similarity + counters → results/deck_*.csv, deck_relations.md
+```
+
+Models for `train.py`:
+
+| `<model>` | what it is |
+|---|---|
+| `constant`, `trophy`, `trophy_level` | baselines (side bias / trophy gap / + total card level) |
+| `card_bt` | Bradley–Terry: deck strength = sum of per-card strengths (+ level slopes) |
+| `enc:<encoder>:<head>` | Siamese deck encoder + pairing head. Encoders: `bag` (sum of card embeddings), `deepset`, `attn` (self-attention). Heads: `bt`, `bc_inner` / `bc_dist` (blade-chest), `mlp` (antisymmetrised MLP) |
+| `cross` | cross-attention transformer over all 16 cards |
+| `deckid:<head>` | classic blade-chest with one vector per frequent deck |
+
+Options (defaults): `d=64 k=16 lr=2e-3 wd=1e-5 bs=8192 epochs=40 patience=3 levels=1 trophies=1 seed=0`. Use `levels=0 trophies=0` for decks-only. All models are antisymmetric: P(A beats B) = 1 − P(B beats A).
+
+Example: `python src/train.py bag_mlp_s1 enc:bag:mlp seed=1`
+
+**Trained weights for every run are already in `results/runs/`**, so `analyze.py` and `deck_relations.py` work without retraining once the data is prepared. On a 2025 MacBook (M5) most runs take 1–30 min; `cross` takes about 3 h. Training saves only at the end (no checkpoints), so a killed run loses its progress.
+
+## Layout
+
+```
+src/
+  download_data.py   fetch the S18 files
+  prepare_s18.py     clean → parquet
+  models.py          all model classes (encoders, heads, cross-attention, deck-id)
+  train.py           training loop, data loading, metrics, device choice
+  train_gbdt.py      HistGradientBoosting baseline
+  diag_gbdt.py       which feature groups the GBDT relies on
+  analyze.py         results table with bootstrap CIs, card strengths, matchup structure, figures
+  decks.py           helpers: deck pool, labels, matchup matrices, Hodge split
+  deck_relations.py  similar decks, counters, held-out validation
+run_all.sh           experiment queue that produced the results
+run_round2.sh        not run yet: extra seeds + light tuning
+results/             metrics (all_runs.csv, summary.md), figures/, runs/ (weights + test logits)
+REPORT.md            write-up
+```
+
+## Open next steps
+
+See REPORT.md, "Next steps":
+- **Round 2:** extra seeds; the top models are within 0.002 log-loss of each other.
+- **Generalisation:** test on a later day.
+- **Deck tools:** group counter lists by archetype; add a query tool for any 8-card deck.
