@@ -58,6 +58,16 @@ for _, r in res.iterrows():
     say(f"| {r.run} | {r.params:,} | {r.val_logloss:.4f} | {r.test_logloss:.4f} | {r.test_acc:.4f} | {r.test_auc:.4f} | "
         f"{r.d_vs_cardbt:+.4f} [{r.ci_lo:+.4f}, {r.ci_hi:+.4f}] |")
 
+seeded = res[res.run.str.contains(r"_s\d+$")].run.str.replace(r"_s\d+$", "", regex=True).unique()
+if len(seeded):
+    say("\n## Seed variance (seed 0 = the round-1 run)\n")
+    say("| model | seeds | test logloss mean ± sd | test acc mean ± sd |")
+    say("|---|---:|---|---|")
+    for b in seeded:
+        g = res[(res.run == b) | res.run.str.fullmatch(rf"{b}_s\d+")]
+        say(f"| {b} | {len(g)} | {g.test_logloss.mean():.4f} ± {g.test_logloss.std():.4f} | "
+            f"{g.test_acc.mean():.4f} ± {g.test_acc.std():.4f} |")
+
 dev = T.device()
 
 

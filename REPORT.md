@@ -10,7 +10,13 @@
 - **Most of the gain comes from modelling matchups, not deck strength.** Swapping the transitive "deck strength" head for an intransitive one (blade-chest or MLP) gains about 0.02 log-loss and 4 points of accuracy with *any* encoder. A better encoder with a transitive head gains only about 0.006.
 - **A simple deck encoder is enough.** A sum of learned card embeddings with an MLP matchup head matches attention and cross-attention models. It trains in about 1 minute, against 33 minutes for attention and 2.9 hours for cross-attention.
 - **Decks really are rock-paper-scissors.** Among the 100 most-played decks, about **50–60%** of the variance in the learned matchup logits is cyclic, meaning no single strength ranking can explain it. About 12–16% of deck triples form strict loops. The model's matchup probabilities correlate **0.76** with raw head-to-head win rates.
-- **Card levels matter almost as much as the decks.** Removing levels and trophies drops the best model from 62.3% to 58.8% accuracy.
+- **The ranking holds across seeds.** Over 3 seeds, the best model scores 0.6408 ± 0.0002 log-loss, ahead of attention + blade-chest (0.6420 ± 0.0005, 2 seeds) and bag + blade-chest distance (0.6440 ± 0.0001). Seed noise is about 10× smaller than the gaps between models.
+- **Card levels matter almost as much as the decks.** Removing levels and trophies drops the best model from 62.3% to 58.9% accuracy.
+- **The embeddings are useful on their own** (section 6).
+  - **Similar decks:** with an intransitive head, cosine similarity between deck embeddings tracks "beats and loses to the same decks" (Spearman up to 0.87).
+  - **Counters:** in blade-chest models a deck's counters are a nearest-neighbour search in embedding space. Counters the model is confident about win about 68% of held-out games, where a strength-only model expects 50%.
+  - **Archetypes:** clustering the embeddings recovers archetypes.
+  - **A few cycles:** most of the rock-paper-scissors structure lies in 3–5 cycles.
 
 ---
 
@@ -34,7 +40,7 @@
 | Chen & Joachims, blade-chest ([WSDM'16](https://github.com/csinpi/blade_chest), [KDD'16](https://videolectures.net/kdd2016_chen_predicting_matchups)) | Sports, games, preferences | Each player gets a "blade" and a "chest" vector, allowing intransitive matchups. KDD'16 makes them functions of features. | Beats BT when matchups are cyclic. Known to be hard to fit. |
 | Balduzzi et al., [Re-evaluating Evaluation (mElo)](https://arxiv.org/pdf/1806.02643) | AI agents / games | Elo plus a low-rank antisymmetric term; Hodge split into transitive and cyclic parts | The basis for our transitive/cyclic analysis |
 
-**Takeaway:** there is more Clash Royale outcome-prediction work than first listed, but it is mostly hobby projects with hand-made features, no learned deck embeddings and no intransitive matchup term. The believable numbers are about 57% decks-only and about 60% with levels (unverified). The results above 80% look like leakage. I found no work combining (a) learned deck embeddings *built from cards*, (b) an explicit intransitive matchup head, and (c) card levels and trophies at the scale of millions of matches. The closest methods are Jakubik's Hearthstone deck encoder (transitive only) and MOBA hero-embedding models with opposition terms. We get 58.8% decks-only and 62.3% with levels and trophies.
+**Takeaway:** there is more Clash Royale outcome-prediction work than first listed, but it is mostly hobby projects with hand-made features, no learned deck embeddings and no intransitive matchup term. The believable numbers are about 57% decks-only and about 60% with levels (unverified). The results above 80% look like leakage. I found no work combining (a) learned deck embeddings *built from cards*, (b) an explicit intransitive matchup head, and (c) card levels and trophies at the scale of millions of matches. The closest methods are Jakubik's Hearthstone deck encoder (transitive only) and MOBA hero-embedding models with opposition terms. We get 58.9% decks-only and 62.3% with levels and trophies.
 
 ## 2. Data
 
@@ -131,9 +137,26 @@ Test set: 234,559 matches. Δ is the paired difference in test log-loss against 
 | gbdt | 0.6681 | 58.4% |
 | bag_bc_inner | 0.6702 | 58.4% |
 | attn_mlp | 0.6690 | 58.0% |
-| **attn_bc_inner** | **0.6650** | **58.8%** |
+| attn_bc_inner | 0.6650 | 58.8% |
+| bag_bc_dist | 0.6685 | 58.2% |
+| **bag_mlp** (round 2) | **0.6645** | **58.9%** |
 
 With decks alone, a *transitive* model is nearly useless (52%), while matchup models reach about 58–59%. This is in line with the ~57% reported in prior decks-only work. Levels and trophies add about 3.5 more points.
+
+**Round 2: seeds and light tuning** ([`run_round2.sh`](run_round2.sh)). Seed 0 is the round-1 run.
+
+| Model | Seeds | Test log-loss (mean ± sd) | Test acc |
+|---|---:|---|---:|
+| **bag_mlp** | 3 | **0.6408 ± 0.0002** | 62.4% |
+| attn_bc_inner | 2 | 0.6420 ± 0.0005 | 62.2% |
+| deepset_bc_dist | 3 | 0.6438 ± 0.0005 | 62.0% |
+| bag_bc_dist | 3 | 0.6440 ± 0.0001 | 62.2% |
+| bag_bc_inner | 3 | 0.6463 ± 0.0001 | 62.1% |
+| card_bt | 3 | 0.6675 ± 0.0000 | 57.8% |
+
+- **Seed noise is tiny (≤ 0.0005), so the round-1 ranking stands.** The MLP head on the plain bag encoder is the best model, and attention + blade-chest is a close second.
+- **Tuning the MLP model does nothing:** d = 128 gives 0.6409 and wd = 1e-4 gives 0.6410.
+- **Blade-chest distance with k = 16 was under-sized.** k = 32 gives 0.6421 and k = 64 gives 0.6420, closing most of the gap to the MLP head while keeping an interpretable, embedding-level counter structure.
 
 **Calibration:** the best model is well calibrated across the full 0–1 range ([figure](results/figures/calibration.png)).
 
@@ -260,7 +283,7 @@ Strength and meta win rates are measured against the top-1,000 pool at equal lev
 
 ## 7. Caveats
 
-- **Single seed.** The top 5 models are within 0.002 log-loss of each other. The bootstrap CIs only cover test-set noise, not training noise, so I can't rank the top models yet. The planned seed repeats ([`run_round2.sh`](run_round2.sh)) were deferred.
+- **Seeds:** 2–3 seeds for the top models (round 2). The slow models (`cross`, `attn_mlp`) still have one seed each.
 - **One day, one meta.** All results come from one ~27-hour window (28–30 Dec 2020). Testing on a different day (another S18 file) or on the Dec 2021 `nonrice` data would show whether the results generalise across metas.
 - **Not finished:** `cross_decksonly` was stopped after about 3 h without a result. Little is lost, because `attn_bc_inner_decksonly` covers the same question.
 - **Missing skill information.** Player skill is only partly captured by trophies, and the trophy gap is small (median 8). Accuracy around 62% may be close to the limit for these inputs, because the rest depends on how the match is played.
@@ -269,10 +292,10 @@ Strength and meta win rates are measured against the top-1,000 pool at equal lev
 
 ## 8. Suggested next steps
 
-1. **Round 2** ([`run_round2.sh`](run_round2.sh)): 3 seeds of the top models, plus small tuning of capacity and regularisation (about 1–1.5 h).
-2. **Generalisation across time:** train on 12/29 and test on 12/30 or 12/31 (one more ~1.4 GB file).
-3. **A context effect for levels:** let the level gap change the matchup (for example, interact the level gap with the blade-chest terms) rather than only shift strength.
-4. **Use blade-chest for deck recommendation:** given an opponent distribution (the meta), find the deck that maximises expected win rate.
+1. **Generalisation across time:** train on 12/29 and test on 12/30 or 12/31. This needs one more ~1.4 GB S18 file.
+2. **Separate deck strength from player skill.** Player tags are in the data, so a per-player rating (or player embedding) alongside the deck model would show how much of "card strength" (Lava Hound, Cannon Cart, …) is really who plays the card.
+3. **Deck recommendation with constraints.** Unconstrained search over card sets fails (section 6.4). A search restricted to decks near played ones, or with deck-building rules (win conditions, spells, elixir cost), plus agreement between model families, is the realistic version.
+4. **A level context effect:** let the level gap change the matchup, not only shift strength. (The encoders' per-card level directions already allow some of this.)
 
 ## Reproduce
 
