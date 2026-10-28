@@ -10,3 +10,7 @@ data/
 
 # course paper (not ours to redistribute)
 Paper.pdf
+
+# training checkpoints (deleted automatically when a run finishes)
+results/runs/*.ckpt
+results/runs/*.tmp

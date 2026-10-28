@@ -2,7 +2,7 @@
 
 Course project for DA5453 (IIT Madras). The goal: given two Clash Royale decks, their card levels and the players' trophies, predict who wins. Along the way, learn an embedding for each deck and model matchups that can be intransitive (rock-paper-scissors), for example with blade-chest.
 
-**Results and discussion: [REPORT.md](REPORT.md).** Deck similarity and counters: [results/deck_relations.md](results/deck_relations.md).
+**Results and discussion: [REPORT.md](REPORT.md).** Deck similarity, counters and archetypes: REPORT §6, [results/deck_relations.md](results/deck_relations.md) and [results/embedding_analysis.md](results/embedding_analysis.md).
 
 Headline: on 235K held-out matches, a sum-of-card-embeddings encoder with an MLP matchup head gets **62.3%** accuracy (log-loss 0.641). A per-card strength model gets 57.8%. The gain comes from the matchup head, not from a fancier encoder.
 
@@ -47,7 +47,12 @@ python src/train_gbdt.py gbdt                            # gradient-boosted tree
 bash run_all.sh                                          # full experiment queue (skips runs that already exist)
 python src/analyze.py                                    # results table, figures → results/
 python src/deck_relations.py                             # deck similarity + counters → results/deck_*.csv, deck_relations.md
+python src/embedding_analysis.py                         # what the embeddings encode: similarity, counters, archetypes, RPS planes
+python src/deck_query.py "Hog Rider, Musketeer, Ice Golem, Ice Spirit, Skeletons, Cannon, Fireball, The Log"
+                                                         # any 8-card deck → similar decks, archetype, counters, swaps
 ```
+
+Set `DEVICE=cpu` (or `cuda`, `mps`) to override the device choice. For example, run the analysis on CPU while a training run uses the GPU.
 
 Models for `train.py`:
 
@@ -63,7 +68,7 @@ Options (defaults): `d=64 k=16 lr=2e-3 wd=1e-5 bs=8192 epochs=40 patience=3 leve
 
 Example: `python src/train.py bag_mlp_s1 enc:bag:mlp seed=1`
 
-**Trained weights for every run are already in `results/runs/`**, so `analyze.py` and `deck_relations.py` work without retraining once the data is prepared. On a 2025 MacBook (M5) most runs take 1–30 min; `cross` takes about 3 h. Training saves only at the end (no checkpoints), so a killed run loses its progress.
+**Trained weights for every run are already in `results/runs/`**, so `analyze.py` and `deck_relations.py` work without retraining once the data is prepared. On a 2025 MacBook (M5) most runs take 1–30 min; `cross` takes about 3 h. Training writes a checkpoint every epoch (`results/runs/<run>.ckpt`). Re-running the same command, or the queue script, resumes from it, and the checkpoint is deleted when the run finishes.
 
 ## Layout
 
@@ -78,8 +83,10 @@ src/
   analyze.py         results table with bootstrap CIs, card strengths, matchup structure, figures
   decks.py           helpers: deck pool, labels, matchup matrices, Hodge split
   deck_relations.py  similar decks, counters, held-out validation
+  embedding_analysis.py  embedding similarity, blade-chest counters, archetype clusters, RPS planes
+  deck_query.py      look up any deck
 run_all.sh           experiment queue that produced the results
-run_round2.sh        not run yet: extra seeds + light tuning
+run_round2.sh        round 2: extra seeds, decks-only for the best heads, light tuning
 results/             metrics (all_runs.csv, summary.md), figures/, runs/ (weights + test logits)
 REPORT.md            write-up
 ```
@@ -87,6 +94,6 @@ REPORT.md            write-up
 ## Open next steps
 
 See REPORT.md, "Next steps":
-- **Round 2:** extra seeds; the top models are within 0.002 log-loss of each other.
 - **Generalisation:** test on a later day.
-- **Deck tools:** group counter lists by archetype; add a query tool for any 8-card deck.
+- **A level-aware matchup head:** let the level gap change the matchup, not just shift strength.
+- **Deck recommendation:** needs constraints that keep it near real decks (see REPORT §6.4).

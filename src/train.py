@@ -5,6 +5,7 @@ Usage: python src/train.py <run_name> <model> [key=value ...]
   options: d, k, lr, wd, bs, epochs, patience, levels (0/1), trophies (0/1), seed, min_count
 """
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -23,6 +24,7 @@ OUT = Path("results/runs")
 
 
 def device():
+    if os.environ.get("DEVICE"): return os.environ["DEVICE"]  # e.g. DEVICE=cpu to leave the GPU to a training run
     if torch.cuda.is_available(): return "cuda"
     if torch.backends.mps.is_available(): return "mps"
     return "cpu"
@@ -99,12 +101,23 @@ def main():
     y = data["y"]
     best, best_state, bad, hist = float("inf"), None, 0, []
     t0 = time.time()
+    ckpt = OUT / f"{run}.ckpt"  # per-epoch checkpoint so a killed run can resume; deleted when the run finishes
+    OUT.mkdir(parents=True, exist_ok=True)
 
     if n_params > 0:
         opt = torch.optim.AdamW(model.parameters(), lr=o["lr"], weight_decay=o["wd"])
         sched = torch.optim.lr_scheduler.ReduceLROnPlateau(opt, factor=0.3, patience=1)
         tr = split["train"]
-        for ep in range(o["epochs"]):
+        start = 0
+        if ckpt.exists():
+            c = torch.load(ckpt, map_location=dev, weights_only=False)
+            model.load_state_dict(c["model"]); opt.load_state_dict(c["opt"]); sched.load_state_dict(c["sched"])
+            best, best_state, bad, hist, start = c["best"], c["best_state"], c["bad"], c["hist"], c["epoch"] + 1
+            torch.set_rng_state(c["rng"].cpu()); t0 -= c["elapsed"]
+            print(f"[{run}] resumed from checkpoint after epoch {c['epoch']}", flush=True)
+        stopped = bad >= o["patience"]
+        for ep in range(start, o["epochs"]):
+            if stopped: break
             model.train(); perm = tr[torch.randperm(len(tr), device=dev)]; tot = 0.0
             for i in range(0, len(perm), o["bs"]):
                 idx = perm[i:i + o["bs"]]
@@ -119,16 +132,22 @@ def main():
                 best_state = {k: v.detach().clone() for k, v in model.state_dict().items()}
             else:
                 bad += 1
-                if bad >= o["patience"]: break
+                stopped = bad >= o["patience"]
+            tmp = ckpt.with_suffix(".tmp")
+            torch.save({"model": model.state_dict(), "opt": opt.state_dict(), "sched": sched.state_dict(), "epoch": ep,
+                        "best": best, "best_state": best_state, "bad": bad, "hist": hist, "rng": torch.get_rng_state(),
+                        "elapsed": time.time() - t0}, tmp)
+            tmp.replace(ckpt)  # atomic, so a kill mid-save never leaves a corrupt checkpoint
         model.load_state_dict(best_state)
 
     res = {"run": run, "model": name, "opts": o, "params": n_params, "train_sec": round(time.time() - t0, 1), "history": hist}
     for s in ("val", "test"):
         res[s] = metrics(predict(model, data, split[s]), y[split[s]])
     OUT.mkdir(parents=True, exist_ok=True)
-    json.dump(res, open(OUT / f"{run}.json", "w"), indent=1)
     torch.save(model.state_dict(), OUT / f"{run}.pt")
     np.save(OUT / f"{run}_test_logit.npy", predict(model, data, split["test"]).cpu().numpy())
+    json.dump(res, open(OUT / f"{run}.json", "w"), indent=1)  # written last: the queue treats the json as "done"
+    ckpt.unlink(missing_ok=True)
     print(f"[{run}] DONE params={n_params:,} test {res['test']}", flush=True)
 
 

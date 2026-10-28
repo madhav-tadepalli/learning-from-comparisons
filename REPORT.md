@@ -41,6 +41,11 @@
 - **Source:** `bwandowando/clash-royale-season-18-dec-0320-dataset`, file `BattlesStaging_12292020_WL_tagged.csv` (1.38 GB). It spans 28 Dec 21:00 UTC to 30 Dec 00:05 UTC.
 - **Cleaning:** [`src/prepare_s18.py`](src/prepare_s18.py). Of 2,345,681 raw rows, 2,345,593 are normal ladder (`gameMode.id = 72000006`). After removing 1 duplicate, **2,345,592** remain. All decks were valid: 8 distinct, known cards with levels in 1–13.
 - **Columns kept:** for each side, the 8 card IDs, the 8 card levels and the starting trophies, plus player tags (used only for analysis) and the time. All in-match statistics (crowns, tower HP, trophy change and so on) were dropped.
+- **Audit of the raw file** (28 Oct):
+  - No draws or mislabelled outcomes: the winner has more crowns in 100% of rows, every winner gained trophies, and no loser did.
+  - No battle is stored twice, including from swapped player perspectives. Nobody plays themselves.
+  - Card levels are on the normalised 1–13 scale: legendaries never go below 9.
+  - Minor issues, left in: about 1% of games are below 1,500 trophies, and 212 games are the same two players again within 60 s.
 - **Sides:** winner and loser are assigned to sides A and B at random. A wins in 49.97% of matches.
 - **Split:** by time. The first 80% of matches are train (1.88M), the next 10% validation (235K) and the last 10% test (235K, the final ~2.5 h). There are 1.94M unique players, so the same player rarely appears in both train and test.
 - **Scale of the inputs:**
@@ -181,7 +186,79 @@ Every intransitive model, whatever its architecture, puts **about half or more**
 
 **Deck embedding map.** Projecting the top 2,000 decks' embeddings to 2D separates archetypes without any labels: Golem beatdown, Lava/Balloon air, Hog/Royal Giant cycle, and Goblin-Barrel bait ([figure](results/figures/deck_embeddings.png)). The full matchup matrix is in [this figure](results/figures/matchup_matrix.png).
 
-## 6. Caveats
+## 6. Deck similarity and counters from the embeddings
+
+Scripts:
+- [`src/deck_relations.py`](src/deck_relations.py) → [`results/deck_relations.md`](results/deck_relations.md), plus the CSVs `deck_pool`, `deck_similar` and `deck_counters`.
+- [`src/embedding_analysis.py`](src/embedding_analysis.py) → [`results/embedding_analysis.md`](results/embedding_analysis.md) and [`results/archetypes.csv`](results/archetypes.csv).
+- [`src/deck_query.py`](src/deck_query.py) looks up any 8-card deck.
+
+All of this uses the 1,000 most-played training decks (80+ plays each), with all cards at level 12 and equal trophies.
+
+**Two kinds of similarity.** *Matchup similarity*: two decks are similar if they beat and lose to the same decks, after removing overall strength. It is the correlation of their rows in the cyclic part C of the matchup matrix. *Embedding similarity* is the cosine between the two deck vectors.
+
+### 6.1 Similar decks: yes, from the embedding alone, if the head is intransitive
+
+| Embedding from | Spearman with matchup similarity | Same, among pairs with equal card overlap | Top-10 neighbours that are also top-10 by matchups |
+|---|---:|---:|---:|
+| shared-card count (no model) | 0.44 | – | 4.7 |
+| `bag_bt` / `attn_bt` | 0.29 / 0.07 | −0.04 / 0.02 | 4.6 / 2.7 |
+| `bag_bc_inner` / `bag_mlp` | 0.73 / 0.73 | 0.67 / 0.67 | 5.6 / 5.7 |
+| `attn_mlp` | 0.81 | 0.76 | 6.3 |
+| `attn_bc_inner` | **0.87** | **0.86** | **7.3** |
+
+The matchup similarity here comes from `attn_bc_inner`. Using `bag_mlp` instead gives the same picture, and `attn_bc_inner` still scores 0.81 on that yardstick.
+
+- **Embeddings know more than shared cards.** Among pairs that share exactly the same number of cards, the attention embedding still ranks matchup similarity at 0.86. It has learned which substitutions matter: swapping Ice Spirit for Skeletons barely changes a deck; swapping a win condition changes it a lot.
+- **Transitive heads produce meaningless embeddings.** A BT head reads a single direction (strength) from the embedding, so nothing constrains the other 63 dimensions. Intransitive heads are needed if the embedding itself is the product.
+- **Functional look-alikes.** Some decks have near-identical matchups with only 2 shared cards: Golem + Baby Dragon beatdown and Giant + Prince + Miner (similarity 0.85), and P.E.K.K.A Graveyard and P.E.K.K.A Miner control (0.84).
+
+### 6.2 Counters: readable from blade-chest embeddings, and they hold up on held-out games
+
+In blade-chest, the counter term is blade_A·chest_B − blade_B·chest_A. **Finding a deck's counters is therefore a nearest-neighbour search in embedding space:** maximise the inner product with [chest_t, −blade_t]. This needs no pairwise model calls.
+- **Agreement with the cyclic part:** the `bag_bc_inner` counter term agrees with the cyclic part of its own matchup matrix at Spearman 0.92.
+- **Agreement with the MLP model:** counter rankings agree with `bag_mlp` at 0.85–0.87.
+- **Limit of the MLP head:** its counters can only be found by scoring pairs.
+
+**Held-out check** (12,578 test games between pool decks; C from training data only, at equal levels):
+
+| Model's counter score C(A,B) | Games | A's observed win rate | `card_bt` predicted (no matchup term, real levels) | full model |
+|---|---:|---:|---:|---:|
+| < −0.4 (B counters A) | 2,236 | **32.2%** | 49.6% | 33.5% |
+| −0.1 to 0.1 | 2,221 | 51.3% | 49.8% | 49.7% |
+| > +0.4 (A counters B) | 2,197 | **68.4%** | 50.3% | 66.2% |
+
+The model treats a matchup as one it should win about 2 times in 3, and on held-out games that's what happens, while a strength-only model sees a coin flip.
+
+**Counters for the most-played decks, grouped by archetype** (mean P(counter wins), `bag_mlp`):
+
+| Deck | Countered by |
+|---|---|
+| Hog Rider 2.6 (Musketeer, Cannon, Ice Golem) | Lava/Balloon (0.75), Graveyard (0.73), Golem beatdown (0.69) |
+| X-Bow (Tesla, Archers) | Golem beatdown (0.75), Lava/Balloon (0.71); best single deck is Giant Graveyard (0.91) |
+| Goblin Barrel bait (Princess, Inferno Tower, Rocket) | Miner/Wall Breakers cycle (0.69), Graveyard (0.66), Lava/Balloon (0.63) |
+| P.E.K.K.A Battle Ram (Bandit, E-Wiz) | Royal Hogs + Recruits decks (single decks 0.76–0.80; **observed 0.82 over 150 real games**), Lava/Balloon (0.59) |
+| Golem + Baby Dragon (Night Witch) | P.E.K.K.A Battle Ram (0.59; best single deck 0.72); a Giant Skeleton + Royal Giant + Earthquake deck: 0.69 predicted, **0.72 observed over 69 games** |
+
+Two models agree well on counter scores (Spearman 0.86). But their *exact* top-5 counter decks overlap by only 1.7 of 5, because a top-5 list is usually five near-identical variants of one archetype. Archetype-level counters are the stable result.
+
+### 6.3 Archetypes and the rock-paper-scissors map
+
+KMeans clustering (k = 14) of the `attn_bc_inner` embeddings recovers recognisable archetypes. Examples: Hog cycle (81% Hog Rider), X-Bow (99%), Golem beatdown, Goblin Barrel bait, Lava/Balloon air, Graveyard control, P.E.K.K.A Battle Ram bridge spam and Royal Hogs. See [`archetype_matchups.png`](results/figures/archetype_matchups.png) for the archetype × archetype table.
+
+The cyclic matchup matrix decomposes into rock-paper-scissors "planes", as in Balduzzi et al.'s mElo. The first plane holds 36–46% of the cyclic variance, 3 planes hold 68–80% and 10 planes hold 97–100%. **There are only a handful of independent rock-paper-scissors dimensions.** In the first plane ([`rps_plane.png`](results/figures/rps_plane.png)), archetypes sit around a circle, and each tends to beat the ones counter-clockwise of it: Lava/Golem beatdown → X-Bow / Hog / Miner cycle → Goblin Barrel bait → Prince / Royal Hogs.
+
+### 6.4 Building decks from embeddings: a negative result
+
+The bag encoder is linear, so under `bag_bc_inner` "the best possible counter to deck t" has a closed form: take the 8 cards with the highest per-card scores. In practice this produces nonsense, such as decks with 6 win conditions. Independent models disagree wildly about them: one built deck gets P = 0.25 from `bag_mlp` and 0.80 from `attn_bc_inner`. A "best deck against the meta" built this way scores 0.42 against the meta, versus 0.68 for the best deck people actually play. **The models are only reliable near decks people actually play.**
+
+A safer use is local search: the best like-for-like single-card swap, scored by two model families. For example, Hog 2.6 Ice Golem → Cannon Cart raises its win rate against the meta from 0.40 to 0.50. These swaps still favour cards with high overall strength (Cannon Cart, Bowler, Lava Hound), which may partly reflect who plays them, so treat them as hypotheses.
+
+### 6.5 What "deck strength" means here
+
+Strength and meta win rates are measured against the top-1,000 pool at equal levels. The most-played decks score below 0.5 there; Hog 2.6 is at 0.40. Yet on their real held-out games the model is calibrated deck by deck: the most-played deck wins 51.3% observed against 49.8% predicted, over 5,278 test games. The gap arises because most real opponents (81% of deck appearances) are rarer decks outside the pool. Rankings at level 12 and level 13 agree at Spearman 0.89.
+
+## 7. Caveats
 
 - **Single seed.** The top 5 models are within 0.002 log-loss of each other. The bootstrap CIs only cover test-set noise, not training noise, so I can't rank the top models yet. The planned seed repeats ([`run_round2.sh`](run_round2.sh)) were deferred.
 - **One day, one meta.** All results come from one ~27-hour window (28–30 Dec 2020). Testing on a different day (another S18 file) or on the Dec 2021 `nonrice` data would show whether the results generalise across metas.
@@ -190,7 +267,7 @@ Every intransitive model, whatever its architecture, puts **about half or more**
 - **Win-condition labels** for the plots come from the dataset's own `Wincons.csv`, which counts Baby Dragon as a win condition.
 - **Equal-level analysis:** the matchup analysis in section 5 holds all cards at level 12 and trophies equal, which isolates the deck effect.
 
-## 7. Suggested next steps
+## 8. Suggested next steps
 
 1. **Round 2** ([`run_round2.sh`](run_round2.sh)): 3 seeds of the top models, plus small tuning of capacity and regularisation (about 1–1.5 h).
 2. **Generalisation across time:** train on 12/29 and test on 12/30 or 12/31 (one more ~1.4 GB file).

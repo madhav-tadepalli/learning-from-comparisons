@@ -58,6 +58,11 @@ def matchups(model, A, B, level=12, bs=1 << 18):
     ia, ib = torch.meshgrid(torch.arange(len(A), device=dev), torch.arange(len(B), device=dev), indexing="ij")
     ia, ib = ia.ravel(), ib.ravel()
     out = []
+    if hasattr(model, "head"):  # siamese: embed each deck once, then only the pairing head runs per pair
+        za, zb = (model.embed(X, torch.full(X.shape, level - 12.0, device=dev)) for X in (A, B))
+        for s in range(0, len(ia), bs):
+            out.append(model.head(za[ia[s:s + bs]], zb[ib[s:s + bs]]).cpu())
+        return torch.cat(out).view(len(A), len(B)).numpy().astype(np.float64)
     for s in range(0, len(ia), bs):
         a, b = A[ia[s:s + bs]], B[ib[s:s + bs]]
         lv = torch.full(a.shape, level - 12.0, device=dev); z = torch.zeros(len(a), device=dev)
