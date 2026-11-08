@@ -1,0 +1,22 @@
+[{"stream_name":"stdout","time":1.45190855,"data":"files: ['simulate.py', 'dlcl_check.py', 'models.py', 'data.py'] ['README-en.txt', 'sushi3b.5000.10.order', 'sushi3.udata', 'sushi3.idata']\n"}
+,{"stream_name":"stdout","time":1.451971043,"data":"/usr/bin/python3 src/dlcl_check.py sim --reps 60 --rep-start 40 --workers 4 --cells 2 3 --out-name dlcl_sim_raw_kaggle1.csv\n"}
+,{"stream_name":"stdout","time":8.760618104,"data":"120 replicates to run\n"}
+,{"stream_name":"stdout","time":2883.690463674,"data":"  20/120\n"}
+,{"stream_name":"stdout","time":5718.127658933,"data":"  40/120\n"}
+,{"stream_name":"stdout","time":8616.51099266,"data":"  60/120\n"}
+,{"stream_name":"stdout","time":11094.559566362,"data":"  80/120\n"}
+,{"stream_name":"stdout","time":13647.241744236,"data":"  100/120\n"}
+,{"stream_name":"stdout","time":15926.215405534,"data":"  120/120\n"}
+,{"stream_name":"stdout","time":15927.919304405,"data":"Flagged = p \u003c 0.001.\n"}
+,{"stream_name":"stdout","time":15927.919340538,"data":"\n"}
+,{"stream_name":"stdout","time":15927.919347581,"data":"| truth | s | reps | DLCL vs ML6 (36 df) | DLCL A_oo only: mean, flagged | ML6 + shared A_oo: mean, flagged | ML6 + LCL(36) |\n"}
+,{"stream_name":"stdout","time":15927.919354028,"data":"|---|---|---|---|---|---|---|\n"}
+,{"stream_name":"stdout","time":15927.919359525,"data":"| normal | 0.75 | 60 | 7% | +0.161, 2% | +0.006, 0% | 0% |\n"}
+,{"stream_name":"stdout","time":15927.919364885,"data":"| normal | 1.00 | 60 | 8% | -0.713, 2% | +0.011, 0% | 0% |\n"}
+,{"stream_name":"stderr","time":15931.652993265,"data":"/usr/local/lib/python3.13/dist-packages/mistune.py:435: SyntaxWarning: invalid escape sequence '\\|'\n"}
+,{"stream_name":"stderr","time":15931.653032156,"data":"  cells[i][c] = re.sub('\\\\\\\\\\|', '|', cell)\n"}
+,{"stream_name":"stderr","time":15932.054883702,"data":"/usr/local/lib/python3.13/dist-packages/nbconvert/filters/filter_links.py:36: SyntaxWarning: invalid escape sequence '\\_'\n"}
+,{"stream_name":"stderr","time":15932.054919378,"data":"  text = re.sub(r'_', '\\_', text) # Escape underscores in display text\n"}
+,{"stream_name":"stderr","time":15933.070813201,"data":"[NbConvertApp] Converting notebook __script__.ipynb to html\n"}
+,{"stream_name":"stderr","time":15934.551942081,"data":"[NbConvertApp] Writing 279538 bytes to __results__.html\n"}
+]

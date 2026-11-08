@@ -1,0 +1,17 @@
+[{"stream_name":"stdout","time":1.828353623,"data":"files: ['models.py', 'simulate.py', 'data.py', 'dlcl_check.py'] ['sushi3.idata', 'sushi3b.5000.10.order', 'README-en.txt', 'sushi3.udata']\n"}
+,{"stream_name":"stdout","time":1.828407117,"data":"/usr/bin/python3 src/dlcl_check.py sim --reps 40 --rep-start 0 --workers 4 --cells 0 1 --out-name dlcl_sim_raw_rest0.csv\n"}
+,{"stream_name":"stdout","time":8.308410024,"data":"0 replicates to run\n"}
+,{"stream_name":"stdout","time":9.558364113,"data":"Flagged = p \u003c 0.001.\n"}
+,{"stream_name":"stdout","time":9.558404178,"data":"\n"}
+,{"stream_name":"stdout","time":9.558408911,"data":"| truth | s | reps | DLCL vs ML6 (36 df) | DLCL A_oo only: mean, flagged | ML6 + shared A_oo: mean, flagged | ML6 + LCL(36) |\n"}
+,{"stream_name":"stdout","time":9.558413165,"data":"|---|---|---|---|---|---|---|\n"}
+,{"stream_name":"stdout","time":9.558432211,"data":"| mnl | 0.00 | 40 | 2% | +0.269, 0% | +0.042, 0% | 0% |\n"}
+,{"stream_name":"stdout","time":9.558437276,"data":"| lcl | 0.00 | 40 | 5% | -3.564, 22% | -0.244, 75% | 10% |\n"}
+,{"stream_name":"stdout","time":9.558441802,"data":"| normal | 0.75 | 30 | 3% | +0.521, 0% | -0.002, 0% | 0% |\n"}
+,{"stream_name":"stderr","time":13.0087794,"data":"/usr/local/lib/python3.13/dist-packages/mistune.py:435: SyntaxWarning: invalid escape sequence '\\|'\n"}
+,{"stream_name":"stderr","time":13.008835713,"data":"  cells[i][c] = re.sub('\\\\\\\\\\|', '|', cell)\n"}
+,{"stream_name":"stderr","time":13.350336221,"data":"/usr/local/lib/python3.13/dist-packages/nbconvert/filters/filter_links.py:36: SyntaxWarning: invalid escape sequence '\\_'\n"}
+,{"stream_name":"stderr","time":13.350367926,"data":"  text = re.sub(r'_', '\\_', text) # Escape underscores in display text\n"}
+,{"stream_name":"stderr","time":14.30080375,"data":"[NbConvertApp] Converting notebook __script__.ipynb to html\n"}
+,{"stream_name":"stderr","time":15.531181434,"data":"[NbConvertApp] Writing 280593 bytes to __results__.html\n"}
+]

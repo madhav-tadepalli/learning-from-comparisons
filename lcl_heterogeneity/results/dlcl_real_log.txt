@@ -1,0 +1,3 @@
+k=1: NLL ML6 9762.4, DLCL 9703.9 | DLCL vs ML6 LRT 116.9 p=1.8e-10 | DLCL A_oo only -7.340 LRT 12.6 p=0.00039 | ML6 + shared A_oo -0.208 LRT 8.0 p=0.0046 | ML6 + LCL(36) LRT 85.4 p=6.9e-06 | A_oo inside full DLCL -0.144
+k=2: NLL ML6 19667.2, DLCL 19637.4 | DLCL vs ML6 LRT 59.7 p=0.0078 | DLCL A_oo only -0.043 LRT 0.1 p=0.79 | ML6 + shared A_oo -0.078 LRT 2.0 p=0.16 | ML6 + LCL(36) LRT 56.4 p=0.016 | A_oo inside full DLCL -0.068
+k=3: NLL ML6 29336.3, DLCL 29280.7 | DLCL vs ML6 LRT 111.1 p=1.4e-09 | DLCL A_oo only -0.002 LRT 0.0 p=0.99 | ML6 + shared A_oo +0.009 LRT 0.0 p=0.84 | ML6 + LCL(36) LRT 77.3 p=7.7e-05 | A_oo inside full DLCL +0.541

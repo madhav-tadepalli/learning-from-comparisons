@@ -43,7 +43,9 @@ real data the fitted taste spread is 0.45. A parametric bootstrap attributes abo
 and inside heterogeneity models the effect falls to $-0.21$ with $p\approx10^{-3}$. Using each respondent's
 second and third ranked choices, the effect is $-0.06$ ($p=0.23$) and $+0.02$ ($p=0.73$), with a test that we
 show detects the paper's effect size in 94--100\% of simulated datasets. A first-pick effect of about $-0.15$
-($p\approx0.02$) remains.
+($p\approx0.02$) remains. The paper's decomposed model (DLCL), which already contains latent classes, keeps its
+false-positive rate under heterogeneity but has little power for this effect, and it does not support the
+oiliness effect either once repeated choices are used.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -116,11 +118,12 @@ estimated together~\cite{rvb11}.
 In machine learning, LCL follows the context-dependent random utility model of Seshadri et
 al.~\cite{spu19}. Seshadri and Ugander~\cite{su20} show that testing IIA in general needs a number of samples
 exponential in the number of alternatives. Tomlinson, Ugander and Benson~\cite{tub21} show that choice sets
-that depend on the chooser bias preference estimates. In the LCL paper, the comparison that allows for
-heterogeneity on sushi (DLCL against mixed logit) gives LRT 59, $p=0.0089$, which does not meet the paper's
-$p<0.001$ threshold, and LCL does not improve held-out prediction on sushi ($p=0.31$). The oiliness effect
-itself is tested only against a plain MNL. We did not find work that tests LCL's individual effects inside a
-heterogeneity model.
+that depend on the chooser bias preference estimates. The LCL paper itself does compare a model with
+context effects and latent classes (the DLCL) against a latent-class mixed logit, and on sushi reports
+LRT 59, $p=0.0089$. We find that both models were fitted well short of their optimum, and that with better
+fits this comparison is highly significant (Section~\ref{sec:dlcl}). That test covers all context effects at
+once, however; the oiliness effect itself is tested only against a plain MNL. We did not find work that tests
+LCL's individual effects inside a heterogeneity model.
 
 %======================================================================
 \section{Methods}
@@ -144,6 +147,12 @@ LCL). We use two models of taste heterogeneity in which every individual is an M
 Both can be combined with $A$. The test of $\Aoo$ inside RC or LC is a one-degree-of-freedom LRT between the
 heterogeneity model with and without that entry. When a person makes several choices, $\eta_n$ is shared
 across them (a panel model).
+
+The paper's second model, the decomposed LCL (DLCL), is a mixture of $d$ logit components. Component $q$ has
+its own preference vector $B_q$ and the context effect of feature $q$ only, so the coefficient of feature $p$
+in component $q$ is $B_{qp}+A_{pq}\xb_{C,q}$. With $A=0$ the DLCL is a latent-class logit with $d$ classes,
+which is the paper's ``mixed logit'' (ML6 below, since $d=6$). The DLCL therefore already contains a model of
+discrete taste heterogeneity, and its test against ML6 is a test of context effects that allows for it.
 
 \subsection{Heterogeneity Seen Through an LCL}
 
@@ -478,6 +487,74 @@ while the first pick keeps one of $-0.16$ ($p=0.017$) with $k=2$ and $-0.14$ ($p
 be a reaction to the full menu at the first choice, or heterogeneity that a diagonal normal model does not
 capture, such as correlated tastes. Our data do not separate the two.
 
+\subsection{The Decomposed LCL}
+\label{sec:dlcl}
+
+Because the DLCL already contains six latent classes, we asked whether the critique also applies to it. We fitted
+ML6 and the DLCL with L-BFGS from several starting points, with a small ridge ($10^{-3}$ on the class offsets
+and context entries) to stop tiny classes from drifting to infinite coefficients, which otherwise happens with
+one choice per person. Our fits are much better than those in the paper: ML6 reaches an NLL of 9762.4 (paper:
+9793) and the DLCL 9703.9 (paper: 9764 with Adam, 9709 with EM). With these fits the DLCL is a highly significant
+improvement over ML6 (LRT 117, 36 df, $p=2\times10^{-10}$), unlike the paper's $p=0.0089$.
+
+That test covers all 36 context entries. For the oiliness effect we used two one-degree-of-freedom tests
+against ML6: the DLCL entry $\Aoo$, which acts only inside the oiliness component, and an LCL self-effect shared
+by all six classes (Table~\ref{tab:dlclreal}). With one choice per person, the shared effect is $-0.21$
+($p=0.005$), below the paper's significance bar, while the DLCL entry is estimated at $-7.3$, a value that only
+makes sense inside one small component. With two or three ranked choices per person, as in the panel analysis,
+both oiliness tests are far from significant. The 36-entry DLCL test stays significant at $k=1$ and $k=3$.
+
+\begin{table}[!t]
+\caption{DLCL and ML6 on the sushi data with the top $k$ choices per person ($p$-values; $\Aoo$ estimates
+in parentheses)}
+\label{tab:dlclreal}
+\centering\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{cccc}
+\toprule
+$k$ & \shortstack{DLCL vs\\ML6} & \shortstack{DLCL\\entry} & \shortstack{ML6 + shared\\$\Aoo$} \\
+\midrule
+1 & $2\times10^{-10}$ & $4\times10^{-4}$ ($-7.3$) & $0.005$ ($-0.21$) \\
+2 & $0.008$ & $0.79$ ($-0.04$) & $0.16$ ($-0.08$) \\
+3 & $1\times10^{-9}$ & $0.99$ ($-0.00$) & $0.84$ ($+0.01$) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+We repeated the simulation study with these tests (100 replicates per setting, run on Kaggle;
+Table~\ref{tab:dlclsim}). Two points stand out. First, the DLCL does not share LCL's problem: with taste
+heterogeneity and no context effect, its oiliness tests flag 0--2\% of datasets. The 36-entry test is somewhat
+too liberal (5--9\% at $p<0.001$), but no heterogeneity-only dataset came close to the LRT of 117 seen on sushi
+(largest 91). Second, the DLCL is a poor tool for detecting an LCL-type self-effect. Against a true $\Aoo=-0.27$
+its own entry detects the effect in 31\% of datasets, with very unstable estimates (mean $-2.6$), and the
+36-entry test in 8\%, because each context entry in the DLCL acts only inside one component. A self-effect
+shared by all classes of ML6 detects it in 82\% of datasets with no false positives, close to the
+random-coefficient test.
+
+\begin{table}[!t]
+\caption{Simulation with DLCL and ML6 (share of datasets with $p<0.001$; mean $\Aoo$ in parentheses)}
+\label{tab:dlclsim}
+\centering\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lccc}
+\toprule
+Ground truth & \shortstack{DLCL vs\\ML6} & \shortstack{DLCL\\entry} & \shortstack{ML6 + shared\\$\Aoo$} \\
+\midrule
+no effect & 1\% & 0\% & 0\% ($+0.04$) \\
+true effect $-0.27$ & 8\% & 31\% & 82\% ($-0.26$) \\
+normal, $s=0.75$ & 5\% & 1\% & 0\% ($+0.01$) \\
+normal, $s=1$ & 9\% & 1\% & 0\% ($+0.00$) \\
+50/50 segments, $s=1$ & 5\% & 2\% & 0\% ($-0.01$) \\
+20/80 segments, $s=1$ & 0\% & 0\% & 0\% ($-0.02$) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+So the critique applies to LCL and to the interpretations built on it, while the DLCL's comparison with ML6
+is a heterogeneity-aware test of the right kind. On sushi that test finds context structure that oiliness
+heterogeneity does not explain, but neither it nor ML6 supports the oiliness effect once each person's taste is
+pinned down by repeated choices.
+
 \subsection{Observation}
 
 Putting the pieces together, the sushi evidence weakens at each step. With one choice per person, the paper's
@@ -492,7 +569,8 @@ The regularity argument limits the scope of this result. Heterogeneity can only 
 consistent with a random utility model, so effects that imply regularity violations, or positive self-effects
 such as the paper's ``truck on truck'' effect in car-alt, need another explanation; for car-alt the authors
 found that menus were tailored to respondents. We also do not claim that sushi has no context effects: the test
-of all 36 entries remains significant after heterogeneity is modelled.
+of all 36 entries remains significant after heterogeneity is modelled, both inside a random-coefficient model
+and in the DLCL's comparison with ML6.
 
 Several limitations apply. The rank-ordered model assumes the same utility at every rank, while lower ranks
 are known to be noisier~\cite{hr87}; with $k=5$ the panel estimate becomes $+0.12$ ($p=9\times10^{-4}$), so we
@@ -510,8 +588,9 @@ and that testing the effect inside a random-coefficient or latent-class model ke
 at the nominal level with little loss of power. On the real data, the fitted heterogeneity explains about a
 third of the effect with one choice per person. With two or three ranked choices per person, the effect is
 not distinguishable from zero at later picks, and a first-pick effect of about $-0.15$ remains at
-$p\approx0.02$. We conclude that the paper's causal reading of the oiliness effect is not supported once taste
-heterogeneity is modelled. The practical lesson is simple: an LCL effect should be tested inside a
+$p\approx0.02$. The paper's DLCL, which already contains latent classes, does not share LCL's problem, but it is
+also not able to support the oiliness effect, and its individual entries are hard to estimate. We conclude that
+the paper's causal reading of the oiliness effect is not supported once taste heterogeneity is modelled. The practical lesson is simple: an LCL effect should be tested inside a
 heterogeneity model, using repeated choices per person when the data have them. This keeps what we like about
 LCL, its interpretable and convex structure, and each of our fits took only seconds. Future work is to apply the same tests to the paper's other
 datasets and to try richer heterogeneity models for the remaining first-pick effect.

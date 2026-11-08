@@ -44,7 +44,7 @@ def normal_draws(P, R, k, seed=0):
 
 class Model:
     def __init__(self, d, lcl=None, quad=(), het=None, het_idx=None, K=2, demo=None, demo_idx=None, R=200,
-                 draw_seed=0):
+                 draw_seed=0, dlcl=None, ridge=0.0):
         """
         lcl     : None, 'full', or list of (p, q) entries of A to estimate
         quad    : features with an own-squared term
@@ -53,11 +53,23 @@ class Model:
         K       : number of latent classes
         demo    : P x m tensor of person covariates (observed heterogeneity), or None
         demo_idx: features whose coefficient depends on demo (default all)
+        dlcl    : DLCL context effects (Tomlinson & Benson's decomposed LCL): None, 'full' or a list of
+                  (p, q) entries. Needs het='classes', K=d, het_idx=all. Component q has preference
+                  vector B_q = theta + delta_q and the context effect of feature q only:
+                  coefficient p in component q is B_qp + A[p, q] * xbar_q. With dlcl=None this is the
+                  paper's d-component "mixed logit".
+        ridge   : optional L2 penalty on class offsets and DLCL entries (fit objective only)
         """
         self.d = d
         if lcl == "full":
             lcl = [(p, q) for p in range(d) for q in range(d)]
         self.lcl = list(lcl) if lcl else []
+        if dlcl == "full":
+            dlcl = [(p, q) for p in range(d) for q in range(d)]
+        self.dlcl = list(dlcl) if dlcl else []
+        self.ridge = ridge
+        if self.dlcl:
+            assert het == "classes" and K == d and (het_idx is None or list(het_idx) == list(range(d)))
         self.quad = list(quad)
         self.het = het
         self.het_idx = list(range(d)) if het_idx is None else list(het_idx)
@@ -83,7 +95,17 @@ class Model:
         elif self.het == "classes":
             p["delta"] = scale * torch.randn(self.K, len(self.het_idx), generator=g)
             p["pi_logit"] = torch.zeros(self.K)
+        if self.dlcl:
+            p["da"] = torch.zeros(len(self.dlcl))
         return p
+
+    def A_dlcl(self, p):
+        """d x d matrix of DLCL entries: column q = context effect of feature q in component q."""
+        M = torch.zeros(self.d, self.d)
+        if self.dlcl:
+            idx = torch.tensor(self.dlcl)
+            M = M.index_put((idx[:, 0], idx[:, 1]), p["da"])
+        return M
 
     def A(self, p):
         A = torch.zeros(self.d, self.d)
@@ -100,7 +122,7 @@ class Model:
             n += len(self.het_idx)
         elif self.het == "classes":
             n += self.K * len(self.het_idx) + self.K - 1 - len(self.het_idx)  # delta has 1 redundant location per feature
-        return n
+        return n + len(self.dlcl)
 
     # ---------------------------------------------------------------- likelihood
     def base_utility(self, p, data):
@@ -137,6 +159,10 @@ class Model:
             extra = torch.einsum("njk,nrk->nrj", xf, e[data.person])  # N x R x J
         else:
             extra = torch.einsum("njk,ck->ncj", xf, e)                 # N x K x J
+            if self.dlcl:
+                # component c gets coefficient increment A_dlcl[p, c] * xbar_c on feature p
+                coefD = self.A_dlcl(p).T[None, :, :] * data.xbar[:, :, None]   # N x K(=d) x d
+                extra = extra + torch.einsum("njp,ncp->ncj", data.feats, coefD)
         u = (u[:, None, :] + extra).masked_fill(~data.valid[:, None, :], neg)
         lp = torch.log_softmax(u, -1)
         idx = data.choice[:, None, None].expand(-1, lp.shape[1], 1)
@@ -168,6 +194,10 @@ class Model:
             def closure():
                 opt.zero_grad()
                 loss = -self.loglik(p, data)
+                if self.ridge:
+                    for k in ("delta", "da"):
+                        if k in p:
+                            loss = loss + self.ridge * (p[k] ** 2).sum()
                 loss.backward()
                 return loss
 
@@ -201,6 +231,8 @@ class Model:
         if self.het == "classes":
             out["pi"] = torch.softmax(p["pi_logit"], 0).numpy()
             out["delta"] = p["delta"].numpy()
+        if self.dlcl:
+            out["A_dlcl"] = self.A_dlcl(p).numpy()
         if self.demo is not None:
             out["B"] = p["B"].numpy()
         return out
