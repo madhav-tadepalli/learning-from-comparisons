@@ -1,0 +1,4 @@
+k=2 MNL   : a_first -0.230 (LRT  18.1, p=2.2e-05)   a_later -0.255 (LRT  23.5, p=1.3e-06)
+k=2 RC-all: a_first -0.162 (LRT   5.7, p=0.017)   a_later +0.035 (LRT   0.3, p=0.61)
+k=3 MNL   : a_first -0.209 (LRT  15.0, p=0.00011)   a_later -0.236 (LRT  42.2, p=8.1e-11)
+k=3 RC-all: a_first -0.139 (LRT   4.5, p=0.034)   a_later +0.093 (LRT   3.4, p=0.064)

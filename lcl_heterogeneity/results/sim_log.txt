@@ -1,0 +1,75 @@
+1500 replicates to run (0 already done)
+  50/1500  402s
+  100/1500  716s
+  150/1500  979s
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/process.py", line 254, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/process.py", line 203, in _process_chunk
+    return [fn(*args) for args in chunk]
+            ~~^^^^^^^
+  File "/Users/madhav/Desktop/IITM/Sem 7/DA5453/Project/lcl_heterogeneity/src/simulate.py", line 121, in run_one
+    fit_nested(fits["rc"], fits["rc_kk"], data, restarts=2, seed=rep)
+    ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/madhav/Desktop/IITM/Sem 7/DA5453/Project/lcl_heterogeneity/src/simulate.py", line 93, in fit_nested
+    small.fit(data, restarts=1, init=back)
+    ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/madhav/Desktop/IITM/Sem 7/DA5453/Project/lcl_heterogeneity/src/models.py", line 183, in fit
+    self.ll, self.params = best
+    ^^^^^^^^^^^^^^^^^^^^
+TypeError: cannot unpack non-iterable NoneType object
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/madhav/Desktop/IITM/Sem 7/DA5453/Project/lcl_heterogeneity/src/simulate.py", line 169, in <module>
+    main()
+    ~~~~^^
+  File "/Users/madhav/Desktop/IITM/Sem 7/DA5453/Project/lcl_heterogeneity/src/simulate.py", line 153, in main
+    for i, row in enumerate(ex.map(run_one, tasks, chunksize=4)):
+                  ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/process.py", line 712, in _chain_from_iterable_of_lists
+    for element in iterable:
+                   ^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/_base.py", line 645, in result_iterator
+    yield _result_or_cancel(fs.pop())
+          ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/_base.py", line 312, in _result_or_cancel
+    return fut.result(timeout)
+           ~~~~~~~~~~^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/_base.py", line 454, in result
+    return self.__get_result()
+           ~~~~~~~~~~~~~~~~~^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/concurrent/futures/_base.py", line 396, in __get_result
+    raise self._exception
+TypeError: cannot unpack non-iterable NoneType object
+1324 replicates to run (176 already done)
+  50/1324  1776s
+  100/1324  1776s
+  150/1324  2008s
+  200/1324  2458s
+  250/1324  2934s
+  300/1324  4421s
+  350/1324  5523s
+  400/1324  6476s
+  450/1324  7320s
+  500/1324  8123s
+  550/1324  9016s
+  600/1324  9799s
+  650/1324  10722s
+  700/1324  11430s
+  750/1324  12153s
+  800/1324  12938s
+  850/1324  13644s
+  900/1324  14117s
+  950/1324  14546s
+  1000/1324  14936s
+  1050/1324  15315s
+  1100/1324  15628s
+  1150/1324  15965s
+  1200/1324  16256s
+  1250/1324  16634s
+  1300/1324  16930s

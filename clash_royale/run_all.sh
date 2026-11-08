@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Full experiment queue. Each run writes results/runs/<name>.json (skips runs already done).
 cd "$(dirname "$0")"
-PY=${PY:-python}  # override with e.g. PY=.venv/bin/python
+PY=${PY:-python}  # override with e.g. PY=../.venv/bin/python
 run() { [[ -f results/runs/$1.json ]] && return; $PY src/train.py "$@" 2>&1 | grep --line-buffered -E "DONE|Error|ep " >> results/train.log; }
 
 mkdir -p results

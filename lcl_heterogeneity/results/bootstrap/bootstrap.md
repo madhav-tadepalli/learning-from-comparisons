@@ -1,0 +1,10 @@
+Observed (real sushi): A_oo alone -0.266, single LRT 23.1, whole-model LRT 97.3
+B = 200 simulated datasets per null; 'p_boot' = share of simulations at least as extreme.
+
+| null model (fitted to sushi) | mean A_oo | sd A_oo | P(A_oo <= obs) | P(single LRT >= obs) | P(single test p<0.001) | P(whole LRT >= obs) | P(whole test p<0.001) |
+|---|---|---|---|---|---|---|---|
+| MNL | -0.004 | 0.057 | 0.0% | 0.0% | 0.0% | 0.0% | 0.0% |
+| RC-oil | -0.094 | 0.060 | 0.0% | 0.0% | 6.0% | 0.0% | 0.0% |
+| RC-all | -0.087 | 0.054 | 0.0% | 0.0% | 3.0% | 0.0% | 0.0% |
+| LC2-oil | -0.093 | 0.058 | 0.0% | 0.0% | 6.5% | 0.0% | 0.0% |
+| LC3-all | -0.117 | 0.055 | 0.5% | 0.5% | 12.0% | 0.0% | 0.0% |

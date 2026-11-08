@@ -1,16 +1,18 @@
-# environments
+# environments (one shared .venv at the top level)
 .venv/
 venv/
 __pycache__/
 *.pyc
 .DS_Store
 
-# data: re-download with `python src/download_data.py` (raw ~1.4 GB, processed parquet ~100 MB)
+# data is never committed:
+#   clash_royale/data      re-download with `python src/download_data.py` (raw ~1.4 GB, processed ~100 MB)
+#   lcl_heterogeneity/data sushi data, not redistributable (see its README)
 data/
 
 # course paper (not ours to redistribute)
 Paper.pdf
 
-# training checkpoints (deleted automatically when a run finishes)
-results/runs/*.ckpt
-results/runs/*.tmp
+# Clash Royale training checkpoints (deleted automatically when a run finishes)
+clash_royale/results/runs/*.ckpt
+clash_royale/results/runs/*.tmp

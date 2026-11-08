@@ -2,7 +2,7 @@
 # Round 2: seed-to-seed variance of the strongest models, decks-only for the best heads, light tuning.
 # Training checkpoints every epoch, so re-running this script resumes an interrupted run.
 cd "$(dirname "$0")"
-PY=${PY:-python}  # override with e.g. PY=.venv/bin/python
+PY=${PY:-python}  # override with e.g. PY=../.venv/bin/python
 run() { [[ -f results/runs/$1.json ]] && return; $PY src/train.py "$@" 2>&1 | grep --line-buffered -E "DONE|Error|ep |resumed" >> results/train.log; }
 
 # seed variance for the headline models (seed 0 = the round-1 run)
