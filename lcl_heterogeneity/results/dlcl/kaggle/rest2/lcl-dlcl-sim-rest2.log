@@ -1,0 +1,23 @@
+[{"stream_name":"stdout","time":2.028582423,"data":"files: ['dlcl_check.py', 'models.py', 'simulate.py', 'data.py'] ['sushi3.udata', 'sushi3.idata', 'sushi3b.5000.10.order', 'README-en.txt']\n"}
+,{"stream_name":"stdout","time":2.028631578,"data":"/usr/bin/python3 src/dlcl_check.py sim --reps 40 --rep-start 0 --workers 4 --cells 4 5 --out-name dlcl_sim_raw_rest2.csv\n"}
+,{"stream_name":"stdout","time":11.380758276,"data":"80 replicates to run\n"}
+,{"stream_name":"stdout","time":2937.256239045,"data":"  20/80\n"}
+,{"stream_name":"stdout","time":5345.449205673,"data":"  40/80\n"}
+,{"stream_name":"stdout","time":8111.177956086,"data":"  60/80\n"}
+,{"stream_name":"stdout","time":10486.36697589,"data":"  80/80\n"}
+,{"stream_name":"stdout","time":10488.591667816,"data":"Flagged = p \u003c 0.001.\n"}
+,{"stream_name":"stdout","time":10488.591707529,"data":"\n"}
+,{"stream_name":"stdout","time":10488.59172029,"data":"| truth | s | reps | DLCL vs ML6 (36 df) | DLCL A_oo only: mean, flagged | ML6 + shared A_oo: mean, flagged | ML6 + LCL(36) |\n"}
+,{"stream_name":"stdout","time":10488.591724443,"data":"|---|---|---|---|---|---|---|\n"}
+,{"stream_name":"stdout","time":10488.591728005,"data":"| mnl | 0.00 | 40 | 2% | +0.269, 0% | +0.042, 0% | 0% |\n"}
+,{"stream_name":"stdout","time":10488.591731445,"data":"| lcl | 0.00 | 40 | 5% | -3.564, 22% | -0.244, 75% | 10% |\n"}
+,{"stream_name":"stdout","time":10488.591734918,"data":"| normal | 0.75 | 30 | 3% | +0.521, 0% | -0.002, 0% | 0% |\n"}
+,{"stream_name":"stdout","time":10488.59173825,"data":"| cls50 | 1.00 | 40 | 0% | -0.620, 0% | -0.020, 0% | 0% |\n"}
+,{"stream_name":"stdout","time":10488.591741599,"data":"| cls20 | 1.00 | 40 | 0% | -0.297, 2% | -0.023, 0% | 0% |\n"}
+,{"stream_name":"stderr","time":10492.969658238,"data":"/usr/local/lib/python3.13/dist-packages/mistune.py:435: SyntaxWarning: invalid escape sequence '\\|'\n"}
+,{"stream_name":"stderr","time":10492.969705217,"data":"  cells[i][c] = re.sub('\\\\\\\\\\|', '|', cell)\n"}
+,{"stream_name":"stderr","time":10493.420382055,"data":"/usr/local/lib/python3.13/dist-packages/nbconvert/filters/filter_links.py:36: SyntaxWarning: invalid escape sequence '\\_'\n"}
+,{"stream_name":"stderr","time":10493.420415177,"data":"  text = re.sub(r'_', '\\_', text) # Escape underscores in display text\n"}
+,{"stream_name":"stderr","time":10494.582968502,"data":"[NbConvertApp] Converting notebook __script__.ipynb to html\n"}
+,{"stream_name":"stderr","time":10496.04107997,"data":"[NbConvertApp] Writing 280593 bytes to __results__.html\n"}
+]

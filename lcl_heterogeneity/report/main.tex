@@ -523,8 +523,8 @@ $k$ & \shortstack{DLCL vs\\ML6} & \shortstack{DLCL\\entry} & \shortstack{ML6 + s
 
 We repeated the simulation study with these tests (100 replicates per setting, run on Kaggle;
 Table~\ref{tab:dlclsim}). Two points stand out. First, the DLCL does not share LCL's problem: with taste
-heterogeneity and no context effect, its oiliness tests flag 0--2\% of datasets. The 36-entry test is somewhat
-too liberal (5--9\% at $p<0.001$), but no heterogeneity-only dataset came close to the LRT of 117 seen on sushi
+heterogeneity and no context effect, its oiliness tests flag at most 1\% of datasets. The 36-entry test is somewhat
+too liberal (up to 9\% at $p<0.001$), but no heterogeneity-only dataset came close to the LRT of 117 seen on sushi
 (largest 91). Second, the DLCL is a poor tool for detecting an LCL-type self-effect. Against a true $\Aoo=-0.27$
 its own entry detects the effect in 31\% of datasets, with very unstable estimates (mean $-2.6$), and the
 36-entry test in 8\%, because each context entry in the DLCL acts only inside one component. A self-effect
@@ -544,8 +544,8 @@ no effect & 1\% & 0\% & 0\% ($+0.04$) \\
 true effect $-0.27$ & 8\% & 31\% & 82\% ($-0.26$) \\
 normal, $s=0.75$ & 5\% & 1\% & 0\% ($+0.01$) \\
 normal, $s=1$ & 9\% & 1\% & 0\% ($+0.00$) \\
-50/50 segments, $s=1$ & 5\% & 2\% & 0\% ($-0.01$) \\
-20/80 segments, $s=1$ & 0\% & 0\% & 0\% ($-0.02$) \\
+50/50 segments, $s=1$ & 3\% & 1\% & 0\% ($-0.01$) \\
+20/80 segments, $s=1$ & 0\% & 1\% & 0\% ($-0.02$) \\
 \bottomrule
 \end{tabular}
 \end{table}
