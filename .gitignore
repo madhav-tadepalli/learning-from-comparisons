@@ -5,13 +5,13 @@ __pycache__/
 *.pyc
 .DS_Store
 
-# data is never committed:
-#   clash_royale/data      re-download with `python src/download_data.py` (raw ~1.4 GB, processed ~100 MB)
-#   lcl_heterogeneity/data sushi data, not redistributable (see its README)
+# Clash Royale data is not committed: re-download with `python src/download_data.py`
+# (raw ~1.4 GB, processed ~100 MB). The sushi data (~1.9 MB) in lcl_heterogeneity/data IS committed
+# (unzipped; the zip itself is left out). Keep this repository private: Kamishima's licence does not
+# allow redistributing the sushi data without permission.
 data/
-
-# course paper (not ours to redistribute)
-Paper.pdf
+!lcl_heterogeneity/data/
+lcl_heterogeneity/data/raw/*.zip
 
 # Clash Royale training checkpoints (deleted automatically when a run finishes)
 clash_royale/results/runs/*.ckpt

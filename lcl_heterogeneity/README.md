@@ -36,7 +36,6 @@ Results and discussion: [REPORT.md](REPORT.md). LaTeX report draft: [report/main
 Run from this folder:
 
 ```bash
-mkdir -p data/raw && cd data/raw && curl -sSLO https://www.kamishima.net/asset/sushi3-2016.zip && unzip sushi3-2016.zip && cd ../..
 ../.venv/bin/python -I src/reproduce.py        # seconds
 ../.venv/bin/python -I src/theory_check.py     # ~1 min
 ../.venv/bin/python -I src/real_data.py        # ~10-15 min
@@ -48,5 +47,7 @@ mkdir -p data/raw && cd data/raw && curl -sSLO https://www.kamishima.net/asset/s
 ../.venv/bin/python -I src/figures.py
 ```
 
-The sushi data may not be redistributed (Kamishima's licence), so it is not included; cite
-Kamishima (KDD 2003) when using it.
+The sushi data (`data/raw/sushi3-2016/`, ~1.9 MB, from https://www.kamishima.net/sushi/) and the
+assigned paper (`Paper.pdf`) are kept in this private repository. Kamishima's licence does not allow
+redistributing the sushi data without permission, so keep the repository private; cite Kamishima
+(KDD 2003) when using it.
