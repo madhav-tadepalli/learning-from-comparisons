@@ -11,6 +11,7 @@ Test set: 234,559 matches. Δ = test log-loss minus card_bt's (negative = better
 | bag_mlp_d128 | 157,954 | 0.6422 | 0.6409 | 0.6244 | 0.6757 | -0.0266 [-0.0275, -0.0256] |
 | cross | 171,586 | 0.6423 | 0.6413 | 0.6215 | 0.6739 | -0.0261 [-0.0269, -0.0252] |
 | bag_bc_dist_k32 | 17,217 | 0.6425 | 0.6421 | 0.6254 | 0.6765 | -0.0254 [-0.0263, -0.0243] |
+| gbdt | 2,293 | 0.6430 | 0.6419 | 0.6217 | 0.6732 | -0.0256 [-0.0263, -0.0248] |
 | attn_bc_dist | 115,265 | 0.6431 | 0.6427 | 0.6210 | 0.6723 | -0.0248 [-0.0257, -0.0238] |
 | attn_bc_inner_s1 | 115,265 | 0.6434 | 0.6424 | 0.6219 | 0.6725 | -0.0251 [-0.0259, -0.0241] |
 | bag_bc_dist | 15,169 | 0.6441 | 0.6441 | 0.6224 | 0.6727 | -0.0234 [-0.0242, -0.0224] |
@@ -21,14 +22,12 @@ Test set: 234,559 matches. Δ = test log-loss minus card_bt's (negative = better
 | deepset_bc_dist_s2 | 179,841 | 0.6444 | 0.6443 | 0.6189 | 0.6701 | -0.0232 [-0.0242, -0.0222] |
 | attn_mlp | 212,226 | 0.6454 | 0.6445 | 0.6170 | 0.6682 | -0.0229 [-0.0239, -0.0219] |
 | deepset_bc_inner | 179,841 | 0.6454 | 0.6446 | 0.6189 | 0.6696 | -0.0229 [-0.0238, -0.0218] |
-| gbdt_3000 | 1,480 | 0.6460 | 0.6447 | 0.6187 | 0.6689 | -0.0228 [-0.0235, -0.0220] |
 | bag_bc_inner_k64 | 21,313 | 0.6462 | 0.6459 | 0.6217 | 0.6713 | -0.0216 [-0.0224, -0.0206] |
 | bag_bc_inner_k32 | 17,217 | 0.6463 | 0.6459 | 0.6224 | 0.6712 | -0.0215 [-0.0224, -0.0206] |
 | bag_bc_inner | 15,169 | 0.6463 | 0.6463 | 0.6212 | 0.6704 | -0.0212 [-0.0220, -0.0203] |
 | bag_bc_inner_s1 | 15,169 | 0.6464 | 0.6463 | 0.6214 | 0.6702 | -0.0211 [-0.0220, -0.0202] |
 | bag_bc_inner_s2 | 15,169 | 0.6466 | 0.6462 | 0.6215 | 0.6706 | -0.0213 [-0.0221, -0.0204] |
 | deepset_mlp | 276,802 | 0.6471 | 0.6462 | 0.6146 | 0.6654 | -0.0212 [-0.0222, -0.0203] |
-| gbdt | 1,000 | 0.6475 | 0.6461 | 0.6171 | 0.6665 | -0.0214 [-0.0220, -0.0207] |
 | bag_bc_inner_k8 | 14,145 | 0.6484 | 0.6484 | 0.6177 | 0.6661 | -0.0190 [-0.0198, -0.0182] |
 | bag_bc_inner_k4 | 13,633 | 0.6523 | 0.6524 | 0.6108 | 0.6579 | -0.0151 [-0.0158, -0.0144] |
 | bag_bc_inner_k2 | 13,377 | 0.6574 | 0.6574 | 0.6013 | 0.6463 | -0.0101 [-0.0106, -0.0095] |
@@ -103,19 +102,19 @@ Cyclic share = fraction of matchup-logit variance not explained by a single stre
 | cross | 0.558 | 58.8% | 14.7% |
 | bag_mlp | 0.674 | 50.2% | 12.0% |
 
-Strongest rock-paper-scissors loops among the top-60 decks (`bag_mlp_s2`; each beats the next):
+Strongest rock-paper-scissors loops among the top-60 decks (`bag_mlp`; each beats the next):
 
-1. weakest link p = 0.752  (P: 0.76, 0.82, 0.75)
+1. weakest link p = 0.709  (P: 0.72, 0.71, 0.74)
    - **Giant + Prince + Miner**: Dark Prince, Mega Minion, Electro Wizard, Fireball, Zap  (8,480 plays)
-   - **Balloon + Baby Dragon**: Bowler, Lumberjack, Inferno Dragon, Freeze, Tornado, Barbarian Barrel  (7,414 plays)
-   - **Skeleton Barrel + Goblin Barrel**: Knight, Skeleton Army, Princess, Dart Goblin, Bomb Tower, The Log  (3,012 plays)
-2. weakest link p = 0.749  (P: 0.76, 0.75, 0.77)
-   - **Giant + Prince + Miner**: Dark Prince, Mega Minion, Electro Wizard, Fireball, Zap  (8,480 plays)
-   - **Balloon + Baby Dragon**: Bowler, Lumberjack, Inferno Dragon, Freeze, Tornado, Barbarian Barrel  (7,414 plays)
+   - **X-Bow**: Archers, Skeletons, Ice Spirit, Ice Golem, Tesla, Fireball, The Log  (6,205 plays)
    - **no win-con**: Barbarians, Skeleton Army, Bomber, Musketeer, Spear Goblins, Minion Horde, Goblin Hut, Barbarian Hut  (3,880 plays)
-3. weakest link p = 0.749  (P: 0.76, 0.76, 0.75)
-   - **Giant + Prince + Miner**: Dark Prince, Mega Minion, Electro Wizard, Fireball, Zap  (8,480 plays)
-   - **Balloon + Baby Dragon**: Bowler, Lumberjack, Inferno Dragon, Freeze, Tornado, Barbarian Barrel  (7,414 plays)
-   - **Skeleton Barrel + Goblin Barrel**: Knight, Skeleton Army, Princess, Dart Goblin, Inferno Tower, The Log  (6,754 plays)
+2. weakest link p = 0.675  (P: 0.69, 0.68, 0.85)
+   - **X-Bow**: Knight, Skeletons, Ice Wizard, Tesla, Rocket, The Log, Tornado  (16,675 plays)
+   - **Skeleton Barrel + Goblin Barrel**: Knight, Skeleton Army, Princess, Dart Goblin, Bomb Tower, The Log  (3,012 plays)
+   - **Royal Hogs**: Royal Recruits, Zappies, Flying Machine, Electro Spirit, Goblin Cage, Fireball, Barbarian Barrel  (6,830 plays)
+3. weakest link p = 0.675  (P: 0.72, 0.68, 0.79)
+   - **X-Bow**: Knight, Archers, Skeletons, Ice Spirit, Tesla, Fireball, The Log  (25,305 plays)
+   - **Skeleton Barrel + Goblin Barrel**: Knight, Skeleton Army, Princess, Dart Goblin, Bomb Tower, The Log  (3,012 plays)
+   - **Royal Hogs**: Royal Recruits, Zappies, Flying Machine, Electro Spirit, Goblin Cage, Fireball, Barbarian Barrel  (6,830 plays)
 
-Sanity check: 102 top-100 deck pairs have ≥100 head-to-head games. Correlation between the model's matchup probability and the raw head-to-head win rate: **0.80** (raw rates are not level/trophy adjusted)
+Sanity check: 102 top-100 deck pairs have ≥100 head-to-head games. Correlation between the model's matchup probability and the raw head-to-head win rate: **0.76** (raw rates are not level/trophy adjusted)

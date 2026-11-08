@@ -16,3 +16,7 @@ lcl_heterogeneity/data/raw/*.zip
 # Clash Royale training checkpoints (deleted automatically when a run finishes)
 clash_royale/results/runs/*.ckpt
 clash_royale/results/runs/*.tmp
+
+# Kaggle runs (kaggle/push.py): generated notebook and downloaded outputs
+clash_royale/kaggle/build/
+clash_royale/kaggle/out/

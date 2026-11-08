@@ -18,7 +18,7 @@ def feats(s, what):
     if "cards" in what:
         x = np.zeros((len(df), C), np.float32); np.put_along_axis(x, cards, 1.0, 1); cols.append(x)
     if "cardlevels" in what:
-        x = np.zeros((len(df), C), np.float32); np.put_along_axis(x, cards, lv - 8, 1); cols.append(x)
+        x = np.zeros((len(df), C), np.float32); np.put_along_axis(x, cards, lv, 1); cols.append(x)
     if "levelsum" in what: cols.append(lv.sum(1, keepdims=True))
     if "levelstats" in what: cols.append(np.stack([lv.min(1), lv.max(1), np.sort(lv, 1)[:, 3]], 1))
     if "trophies" in what: cols.append(df[[f"trophies_{s}"]].to_numpy(np.float32))

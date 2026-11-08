@@ -1,10 +1,10 @@
 """Gradient-boosted trees baseline (sklearn HistGradientBoosting) on hand-built features.
 
-Features per side: level-weighted card presence (0 if absent, level-8 if present, so every
-present card is > 0), total level, trophies. Trained on both orderings of each match and
+Features per side: level-weighted card presence (0 if absent, the card's level 1-13 if present),
+total level, trophies. Trained on both orderings of each match and
 antisymmetrised at prediction time: logit = (f(A,B) - f(B,A)) / 2.
 
-Usage: python src/train_gbdt.py <run_name> [levels=1] [trophies=1] [iters=1000]
+Usage: python src/train_gbdt.py <run_name> [levels=1] [trophies=1] [iters=3000]
 """
 import json
 import sys
@@ -20,7 +20,7 @@ from train import DATA, OUT, metrics
 import torch
 
 run = sys.argv[1]
-o = {"levels": 1, "trophies": 1, "iters": 1000}
+o = {"levels": 1, "trophies": 1, "iters": 3000}
 for kv in sys.argv[2:]:
     k, v = kv.split("="); o[k] = int(v)
 
@@ -32,7 +32,7 @@ def side(s):
     cards = df[[f"card{i}_{s}" for i in range(8)]].to_numpy()
     lv = df[[f"level{i}_{s}" for i in range(8)]].to_numpy().astype(np.float32)
     x = np.zeros((len(df), C), np.float32)
-    np.put_along_axis(x, cards, (lv - 8) if o["levels"] else 1.0, 1)
+    np.put_along_axis(x, cards, lv if o["levels"] else 1.0, 1)
     extra = []
     if o["levels"]: extra.append(lv.sum(1, keepdims=True))
     if o["trophies"]: extra.append(df[[f"trophies_{s}"]].to_numpy(np.float32))

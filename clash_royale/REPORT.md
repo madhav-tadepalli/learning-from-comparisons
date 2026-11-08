@@ -11,6 +11,7 @@
 - **A simple deck encoder is enough.** A sum of learned card embeddings with an MLP matchup head matches attention and cross-attention models. It trains in about 1 minute, against 33 minutes for attention and 2.9 hours for cross-attention.
 - **Decks really are rock-paper-scissors.** Among the 100 most-played decks, about **50–60%** of the variance in the learned matchup logits is cyclic, meaning no single strength ranking can explain it. About 12–16% of deck triples form strict loops. The model's matchup probabilities correlate **0.76** with raw head-to-head win rates.
 - **The ranking holds across seeds.** Over 3 seeds, the best model scores 0.6408 ± 0.0002 log-loss, ahead of attention + blade-chest (0.6420 ± 0.0005, 2 seeds) and bag + blade-chest distance (0.6440 ± 0.0001). Seed noise is about 10× smaller than the gaps between models.
+- **Gradient-boosted trees come close.** With card levels encoded properly, trees on card/level features reach 62.2% / 0.6419, just behind the best model (0.0009 log-loss) and tied with attention + blade-chest. The case for the matchup models rests on their interpretable embeddings more than on accuracy.
 - **Card levels matter almost as much as the decks.** Removing levels and trophies drops the best model from 62.3% to 58.9% accuracy.
 - **The embeddings are useful on their own** (section 6).
   - **Similar decks:** with an intransitive head, cosine similarity between deck embeddings tracks "beats and loses to the same decks" (Spearman up to 0.87).
@@ -104,7 +105,7 @@ Test set: 234,559 matches. Δ is the paired difference in test log-loss against 
 | deckid_bc_inner | 236K | 0.6702 | 57.0% | 0.608 | +0.003 |
 | deepset_bt | 178K | 0.6613 | 58.7% | 0.631 | −0.006 |
 | attn_bt | 113K | 0.6618 | 58.6% | 0.629 | −0.006 |
-| gbdt (converged at 1,480 iterations) | — | 0.6447 | 61.9% | 0.669 | −0.023 |
+| gbdt (level-encoding fix, converged at 2,293 iterations) | — | 0.6419 | 62.2% | 0.673 | −0.026 |
 | bag_bc_inner | 15K | 0.6463 | 62.1% | 0.670 | −0.021 |
 | bag_bc_dist | 15K | 0.6441 | 62.2% | 0.673 | −0.023 |
 | deepset_bc_dist | 180K | 0.6438 | 62.0% | 0.671 | −0.024 |
@@ -160,7 +161,14 @@ With decks alone, a *transitive* model is nearly useless (52%), while matchup mo
 
 **Calibration:** the best model is well calibrated across the full 0–1 range ([figure](results/figures/calibration.png)).
 
-**Where the trees' edge came from** ([`results/diag_gbdt.txt`](results/diag_gbdt.txt)). The trees reach 0.6728 on levels and trophies alone and 0.6752 on cards alone, but 0.6518 with both. Their advantage over BT therefore comes from interactions, the same structure the matchup heads capture.
+**Gradient-boosted trees are nearly as good.** The first GBDT run encoded a present card as level − 8, so a level-8 card looked the same as an absent one (2.6% of card slots). Encoding it as its level (absent = 0) moved the trees from 0.6447 / 61.9% to **0.6419 / 62.2%** (run on Kaggle, same data fingerprint). Paired bootstrap on the test set:
+- vs `bag_mlp`: +0.0009 [0.0002, 0.0016], so the MLP head is still better, but only just.
+- vs `attn_bc_inner`: +0.0002 [−0.0005, 0.0009], a tie.
+- vs `bag_bc_dist` (k = 16): −0.0022 [−0.0029, −0.0015], so the trees are better.
+
+So on prediction alone, the matchup models' edge over a well-encoded tree baseline is small. Their real advantage is what they expose: deck embeddings, similarity, counters and cycles (section 6), which the trees don't give.
+
+**Where the trees' edge came from** ([`results/diag_gbdt.txt`](results/diag_gbdt.txt); 600K-match training subsample). The trees reach 0.6728 on levels and trophies alone and 0.6752 on cards alone, but 0.6520 with both, and 0.6514 when each card is weighted by its level. Their advantage over BT therefore comes from interactions, the same structure the matchup heads capture.
 
 ## 5. What the models learned
 

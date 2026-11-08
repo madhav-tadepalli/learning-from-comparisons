@@ -177,7 +177,7 @@ for r in ["card_bt", "deepset_bt", "bag_bc_inner", "bag_bc_dist", "deepset_bc_di
     lg = matchups(load_model(r)[0]); _, fr, ct = structure(lg)
     say(f"| {r} | {lg.std():.3f} | {fr:.1%} | {ct:.1%} |")
 
-best = res[res.run.str.contains("bc_|mlp|cross") & ~res.run.str.contains("decksonly|deckid|_k")].iloc[0].run
+best = res[res.run.str.contains("bc_|mlp|cross") & ~res.run.str.contains(r"decksonly|deckid|_k|_s\d|_d\d|_wd")].iloc[0].run  # seed-0 runs only
 mb, rb = load_model(best)
 logits = matchups(mb)
 s, frac, _ = structure(logits)

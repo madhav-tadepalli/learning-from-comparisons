@@ -73,6 +73,19 @@ Example: `python src/train.py bag_mlp_s1 enc:bag:mlp seed=1`
 
 **Trained weights for every run are already in `results/runs/`**, so `analyze.py` and `deck_relations.py` work without retraining once the data is prepared. On a 2025 MacBook (M5) most runs take 1–30 min; `cross` takes about 3 h. Training writes a checkpoint every epoch (`results/runs/<run>.ckpt`). Re-running the same command, or the queue script, resumes from it, and the checkpoint is deleted when the run finishes.
 
+### Running on Kaggle instead of your machine
+
+`kaggle/push.py` sends any of the commands above to a private Kaggle notebook. The notebook attaches the S18 dataset, rebuilds the cleaned table, runs the commands and keeps `results/` as its output. Nothing is downloaded locally. You need the Kaggle CLI, signed in (`pip install kaggle`, then an API token).
+
+```bash
+python kaggle/push.py "python src/train_gbdt.py gbdt"                        # CPU notebook
+python kaggle/push.py "python src/train.py bag_mlp_s3 enc:bag:mlp seed=3" --gpu
+kaggle kernels status <your-username>/clash-royale-runs
+kaggle kernels output <your-username>/clash-royale-runs -p kaggle/out        # then copy kaggle/out/results/... into results/
+```
+
+The log prints a `fingerprint` line (row count + hash) for the rebuilt table. It should match `2345592 b08be8b53b96f44437c865ecdc88a9fa`, the locally prepared data.
+
 ## Layout
 
 ```
@@ -88,6 +101,7 @@ src/
   deck_relations.py  similar decks, counters, held-out validation
   embedding_analysis.py  embedding similarity, blade-chest counters, archetype clusters, RPS planes
   deck_query.py      look up any deck
+kaggle/push.py       run commands on a Kaggle notebook
 run_all.sh           experiment queue that produced the results
 run_round2.sh        round 2: extra seeds, decks-only for the best heads, light tuning
 results/             metrics (all_runs.csv, summary.md), figures/, runs/ (weights + test logits)
